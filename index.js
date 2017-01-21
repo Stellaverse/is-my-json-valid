@@ -157,21 +157,21 @@ var compile = function(schema, cache, root, reporter, opts) {
       if (reporter === true) {
         validate('if (validate.errors === null) validate.errors = []')
         if (verbose) {
-          validate('validate.errors.push({field:%s,message:%s,value:%s,type:%s})', formatName(prop || name), JSON.stringify(msg), value || name, JSON.stringify(type))
+          validate('validate.errors.push({field:%s,message:%s,value:%s,requiredType:%s})', formatName(prop || name), JSON.stringify(msg), value || name, JSON.stringify(type))
         } else {
           validate('validate.errors.push({field:%s,message:%s})', formatName(prop || name), JSON.stringify(msg))
         }
       }
     }
 
-    if (node.required === true) {
+    if (node.required === false) {
+	  indent++
+      validate('if (%s !== undefined) {', name)
+    } else {
       indent++
       validate('if (%s === undefined) {', name)
       error('is required')
       validate('} else {')
-    } else {
-      indent++
-      validate('if (%s !== undefined) {', name)
     }
 
     var valid = [].concat(type)
@@ -282,7 +282,8 @@ var compile = function(schema, cache, root, reporter, opts) {
       if (type !== 'object') validate('}')
     }
 
-    if (node.additionalProperties || node.additionalProperties === false) {
+    if (!node.additionalProperties || node.additionalProperties === false) {
+
       if (type !== 'object') validate('if (%s) {', types.object(name))
 
       var i = genloop()
@@ -303,10 +304,10 @@ var compile = function(schema, cache, root, reporter, opts) {
       validate('var %s = Object.keys(%s)', keys, name)
         ('for (var %s = 0; %s < %s.length; %s++) {', i, i, keys, i)
           ('if (%s) {', additionalProp)
-
-      if (node.additionalProperties === false) {
+      
+	  if (!node.additionalProperties || node.additionalProperties === false) {
         if (filter) validate('delete %s', name+'['+keys+'['+i+']]')
-        error('has additional properties', null, JSON.stringify(name+'.') + ' + ' + keys + '['+i+']')
+        error('has unknown properties', null, JSON.stringify(name+'.') + ' + ' + keys + '['+i+']')
       } else {
         visit(name+'['+keys+'['+i+']]', node.additionalProperties, reporter, filter)
       }
@@ -539,13 +540,13 @@ var compile = function(schema, cache, root, reporter, opts) {
   }
 
   var validate = genfun
-    ('function validate(data) {')
+    ('function validate(params) {')
       // Since undefined is not a valid JSON value, we coerce to null and other checks will catch this
-      ('if (data === undefined) data = null')
+      ('if (params === undefined) params = null')
       ('validate.errors = null')
       ('var errors = 0')
 
-  visit('data', schema, reporter, opts && opts.filter)
+  visit('params', schema, reporter, opts && opts.filter)
 
   validate
       ('return errors === 0')

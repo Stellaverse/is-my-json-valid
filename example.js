@@ -1,18 +1,51 @@
-var validator = require('./')
+
+
+
+var start = new Date().getTime();
+var validator = require('./');
+
+
 
 var validate = validator({
-  type: 'object',
-  properties: {
-    hello: {
-      required: true,
-      type: 'string'
-    }
-  }
-})
+	type: 'object',
+	properties: {
+		hello: {
+			type: 'string',
+		},
+		test : {
+			type : 'object',
+			properties : {
+				testing : { type : 'string' }
+			}
+		}
+	}
+}, {
+	verbose: true
+});
 
-console.log('should be valid', validate({hello: 'world'}))
-console.log('should not be valid', validate({}))
 
-// get the last error message by checking validate.error
-// the following will print "data.hello is required"
-console.log('the errors were:', validate.errors)
+
+var data = {
+	//hello : 'world!',
+	test : {
+		testing : '1234',
+		another : '5678'
+	},
+	//pages : [
+	//	{ pageID : '', title : '', url : '' }
+	//]
+}
+
+
+
+var valid = validate(data);
+
+if (validate.errors) {
+	console.log(validate.errors);
+} else {
+	console.log('Valid!');
+}
+
+console.log('Duration: ' + (new Date().getTime() - start) + 'ms');
+
+

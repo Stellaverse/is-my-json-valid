@@ -1,3 +1,13 @@
+# NOTE
+This is a fork of `is-my-json-valid` not intended for public use. This fork
+sets `required` and `additionalProperties` to true, and modified some error
+messages.
+
+It is recommended to use the official `is-my-json-valid` module.
+
+---
+
+
 # is-my-json-valid
 
 A [JSONSchema](http://json-schema.org/) validator that uses code generation
